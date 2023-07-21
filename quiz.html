@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase_version9_RealtimeDB(G'sACADEMY初学者用サンプル)</title>
+</head>
+
+<body>
+
+    <!-- コンテンツ表示画面 -->
+    <div>
+        <div>
+            問題番号：<input type="text" id="uname">
+        </div>
+        <div>
+            <button id="send">送信</button>
+        </div>
+        <div>
+            <p>問題</p>
+            <p id="reference" style="border: solid;height: 100px;"></p>
+        </div>
+        <div>
+            <p>選択肢</p>
+            <label>
+                <input type="radio" name="choices" value="a" id="choiceA">
+                <span id="labelA"></span>
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="choices" value="b" id="choiceB">
+                <span id="labelB"></span>
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="choices" value="c" id="choiceC">
+                <span id="labelC"></span>
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="choices" value="d" id="choiceD">
+                <span id="labelD"></span>
+            </label>
+        </div>
+        <div id="result"></div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script type="module">
+            // Import the functions you need from the SDKs you need
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+            import { getDatabase, ref, push, set, onChildAdded, remove, equalTo, orderByChild , get, onValue}
+            from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+            const firebaseConfig = {
+              apiKey: "AIzaSyAuBORJRqZsFYJ7t0t5PZn2PFQvnXKiBuY",
+              authDomain: "gsdev0603-f7834.firebaseapp.com",
+              databaseURL: "https://gsdev0603-f7834-default-rtdb.firebaseio.com",
+              projectId: "gsdev0603-f7834",
+              storageBucket: "gsdev0603-f7834.appspot.com",
+              messagingSenderId: "103991913013",
+              appId: "1:103991913013:web:a263a2c790bcb1098bdf7c",
+              measurementId: "G-ZPHD67PP7Z"
+            };
+          
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app); //RealtimeDBに接続
+
+
+       
+//データ参照、此方はパスを指定してからデータ読み込むため処理はやめ。
+            $("#send").on("click",function(){
+                const num = $("#uname").val()
+                const dbRef = ref(db, "quiz/-N_fM-A0GBiMdz8YS9oP/quizzes/"+num); //RealtimeDB内の"mori"を使う -->
+                // const dbRef = ref(db, "quiz/**/quizzes/"+num); //RealtimeDB内の"mori"を使う -->
+                onValue(dbRef,(snapshot)=>{
+                const data = snapshot.val()
+                console.log(data.question)
+                console.log(data.correctAnswer)
+                console.log(data.choices)
+                console.log(data.choices["a"])
+                let html = `<p></p>`;
+                html += `<p>${data.question}</p>`;
+                $("#reference").html(html);
+                $("#labelA").html(data.choices.a);
+                $("#labelB").html(data.choices.b);
+                $("#labelC").html(data.choices.c);
+                $("#labelD").html(data.choices.d);
+                $("input[type='radio']").on("change", function () {
+                    const selectedAnswer = $("input[name='choices']:checked").val();
+                    if (selectedAnswer === data.correctAnswer) {
+                        $("#result").html("ピンポン！");
+                    } else {
+                        $("#result").html("ブッブー！");
+                    }
+                });
+                })   
+
+
+            })
+
+            $("input[type='radio']").prop("checked", false);
+
+            // //データ参照、此方は全てのデータを読み込んでから抽出するため、処理遅め。
+            // $("#send").on("click",function(){
+            //     const num = $("#uname").val()
+            //     const dbRef = ref(db, "quiz/-N_fM-A0GBiMdz8YS9oP/quizzes"); //RealtimeDB内の"mori"を使う -->
+            //     // const dbRef = ref(db, "quiz/**/quizzes/"+num); //RealtimeDB内の"mori"を使う -->
+            //     onValue(dbRef,(snapshot)=>{
+            //     const data = snapshot.val()
+            //     console.log(data[num].question)
+            //     console.log(data[num].correctAnswer)
+            //     console.log(data[num].choices)
+            //     console.log(data[num].choices["a"])
+            //     })   
+            // })
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズデータ作成</title>
+    <style>
+        fieldset label {
+            display: block;
+        }
+        pre {
+            background-color: #f7f7f7;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label for="numOfQuizzes">クイズの問題数：</label>
+        <input type="number" id="numOfQuizzes" min="1">
+        <button id="generateQuizForm">クイズフォーム作成</button>
+    </div>
+
+    <div id="quizForm" style="display: none;">
+        <h2>クイズデータ入力</h2>
+        <form id="quizDataForm">
+        </form>
+        <button id="generateQuizData">クイズデータ作成</button>
+    </div>
+
+    <div id="jsonOutput" style="display: none;">
+        <h2>作成したクイズデータ(JSON形式)</h2>
+        <pre id="jsonDataDisplay"></pre>
+    </div>
+
+    <div>
+        <div>
+            <button id="send">アップロードぉぉぉぉぉぉ！</button>
+        </div>
+        <div id="unique"></div>
+    <div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="module">
+        let quizData;
+        function generateQuizDataForm(numOfQuizzes) {
+            const form = document.getElementById("quizDataForm");
+            form.innerHTML = ""; // フォームをリセット
+
+            for (let i = 1; i <= numOfQuizzes; i++) {
+                const quizId = "quiz" + i;
+                const fieldset = document.createElement("fieldset");
+                const legend = document.createElement("legend");
+                legend.textContent = "問題" + i;
+                fieldset.appendChild(legend);
+
+                const questionLabel = document.createElement("label");
+                questionLabel.setAttribute("for", "question" + i);
+                questionLabel.textContent = "問題：";
+                const questionInput = document.createElement("input");
+                questionInput.setAttribute("type", "text");
+                questionInput.setAttribute("id", "question" + i);
+                questionInput.setAttribute("name", "question");
+                questionInput.setAttribute("required", true);
+                fieldset.appendChild(questionLabel);
+                fieldset.appendChild(questionInput);
+
+                const choices = ["A", "B", "C", "D"];
+                for (const choice of choices) {
+                    const choiceLabel = document.createElement("label");
+                    choiceLabel.setAttribute("for", "choice" + i + choice);
+                    choiceLabel.textContent = "選択肢" + choice + "：";
+                    const choiceInput = document.createElement("input");
+                    choiceInput.setAttribute("type", "text");
+                    choiceInput.setAttribute("id", "choice" + i + choice);
+                    choiceInput.setAttribute("name", "choice" + i);
+                    choiceInput.setAttribute("required", true);
+                    fieldset.appendChild(choiceLabel);
+                    fieldset.appendChild(choiceInput);
+                }
+
+                const correctLabel = document.createElement("label");
+                correctLabel.setAttribute("for", "correct" + i);
+                correctLabel.textContent = "正解の選択肢（a, b, c, dのいずれか）：";
+                const correctInput = document.createElement("input");
+                correctInput.setAttribute("type", "text");
+                correctInput.setAttribute("id", "correct" + i);
+                correctInput.setAttribute("name", "correct" + i);
+                correctInput.setAttribute("required", true);
+                correctInput.setAttribute("pattern", "[a-dA-D]");
+                correctInput.setAttribute("title", "a, b, c, dのいずれかを入力してください。");
+
+                fieldset.appendChild(correctLabel);
+                fieldset.appendChild(correctInput);
+
+                form.appendChild(fieldset);
+            }
+        }
+
+        document.getElementById("generateQuizForm").addEventListener("click", function () {
+            const numOfQuizzes = parseInt(document.getElementById("numOfQuizzes").value);
+
+            if (numOfQuizzes > 0) {
+                document.getElementById("quizForm").style.display = "block";
+                document.getElementById("jsonOutput").style.display = "none";
+                generateQuizDataForm(numOfQuizzes);
+            } else {
+                alert("問題数を1以上の整数で指定してください。");
+            }
+        });
+
+        document.getElementById("generateQuizData").addEventListener("click", function () {
+            const numOfQuizzes = parseInt(document.getElementById("numOfQuizzes").value);
+
+            if (numOfQuizzes > 0) {
+                const form = document.getElementById("quizDataForm");
+                const quizData = { quizzes: {} };
+
+                for (let i = 1; i <= numOfQuizzes; i++) {
+                    const quizId = "quiz" + i;
+                    const question = form["question" + i].value;
+                    const choices = {
+                        a: form["choice" + i + "A"].value,
+                        b: form["choice" + i + "B"].value,
+                        c: form["choice" + i + "C"].value,
+                        d: form["choice" + i + "D"].value,
+                    };
+                    const correctAnswer = form["correct" + i].value.toLowerCase();
+
+                    quizData.quizzes[quizId] = {
+                        question,
+                        choices,
+                        correctAnswer
+                    };
+                }
+
+                const jsonData = JSON.stringify(quizData, null, 2);
+                document.getElementById("jsonDataDisplay").textContent = jsonData;
+                document.getElementById("jsonOutput").style.display = "block";
+            } else {
+                alert("問題数を1以上の整数で指定してください。");
+            }
+        });
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+            import { getDatabase, ref, push, set, onChildAdded, remove, equalTo, orderByChild , get}
+            from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+            const firebaseConfig = {
+              apiKey: "AIzaSyAuBORJRqZsFYJ7t0t5PZn2PFQvnXKiBuY",
+              authDomain: "gsdev0603-f7834.firebaseapp.com",
+              databaseURL: "https://gsdev0603-f7834-default-rtdb.firebaseio.com",
+              projectId: "gsdev0603-f7834",
+              storageBucket: "gsdev0603-f7834.appspot.com",
+              messagingSenderId: "103991913013",
+              appId: "1:103991913013:web:a263a2c790bcb1098bdf7c",
+              measurementId: "G-ZPHD67PP7Z"
+            };
+          
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); //RealtimeDBに接続
+        const dbRef = ref(db, "qui"); //RealtimeDB内の"quiz"を使う -->
+
+    
+        $("#send").on("click", function() {
+        const newPostRef = push(dbRef); //ユニークKEYを生成
+        console.log(quizData)
+        set(newPostRef, quizData);
+        // console.log(newPostRef.key)
+        // return newPostRef
+        let html = `<p></p>`;
+        html += newPostRef.key;
+        $("#unique").html(html);
+        });
+
+    </script>
+</body>
+
+</html>
